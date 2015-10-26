@@ -1,6 +1,7 @@
 package common.auction;
 
 import java.sql.*;
+import java.util.ArrayList;
 import common.auction.DBProperty;;
 
 public class JMSAccessConn
@@ -11,6 +12,8 @@ public class JMSAccessConn
 	
 	private Connection m_conn;
 	private Statement m_statement;
+	
+	private ArrayList<Product> m_listProduct;
 	
 	JMSAccessConn()
 	{
@@ -67,6 +70,64 @@ public class JMSAccessConn
 		}
 		
 		return bValidPassword;
+	}
+	
+	public ArrayList<Product> GetProductList( long lUserID)
+	{
+		try
+		{
+			String strSQL = "SELECT Product.ProductID as ProductID, ProductCategory.ProductName as ProductName, Product.Price as Price FROM Product INNER JOIN ProductCategory ON Product.ProductID = ProductCategory.ProductID WHERE UserID = " + lUserID + ";";
+			
+			m_statement.execute(strSQL);
+			
+			ResultSet rs = m_statement.getResultSet();
+			
+			m_listProduct = new ArrayList<Product> ();
+			while( rs.next())
+			{
+				long lProductID = rs.getLong("ProductID");
+				String strName = rs.getString("ProductName");
+				double dblPrice = rs.getDouble("Price");
+				Product product = new Product(lProductID, strName, 1, dblPrice);
+				
+				m_listProduct.add(product);
+			}
+		}
+		catch( Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		
+		return m_listProduct;
+	}
+	
+	public ArrayList<Product> GetProductList( String strUserName)
+	{
+		try
+		{
+			String strSQL = "SELECT ProductCategory.ProductID as ProductID, ProductCategory.ProductName as ProductName, Product.Price as Price, User.Name as UserName FROM (Product INNER JOIN [User] ON Product.UserID = User.UserID) INNER JOIN ProductCategory ON Product.ProductID = ProductCategory.ProductID  WHERE User.Name = '" + strUserName + "';";
+			
+			m_statement.execute(strSQL);
+			
+			ResultSet rs = m_statement.getResultSet();
+			
+			m_listProduct = new ArrayList<Product> ();
+			while( rs.next())
+			{
+				long lProductID = rs.getLong("ProductID");
+				String strName = rs.getString("ProductName");
+				double dblPrice = rs.getDouble("Price");
+				Product product = new Product(lProductID, strName, 1, dblPrice);
+				
+				m_listProduct.add(product);
+			}
+		}
+		catch( Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		
+		return m_listProduct;
 	}
 	
 	public static void main(String[] args)
