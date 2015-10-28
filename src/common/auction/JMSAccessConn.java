@@ -12,7 +12,7 @@ public class JMSAccessConn
 	
 	private Connection m_conn;
 	private Statement m_statement;
-	
+	public Singleton singleton = Singleton.getInstance(); 
 	private ArrayList<Product> m_listProduct;
 	
 	JMSAccessConn()
@@ -34,7 +34,7 @@ public class JMSAccessConn
 	
 	protected String GetDBProperty()
 	{
-		DBProperty db = new DBProperty();
+		DBProperty db = singleton.GetProperty();
 		m_strDBPath = db.GetAccessFilePath();
 		return m_strDBPath;
 	}

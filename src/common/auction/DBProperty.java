@@ -6,8 +6,10 @@ import java.util.Properties;
 public class DBProperty
 {
 	private String m_strAccessFilePath;
+	private String m_strServerIP;
+	private long m_lServerPort;
 	
-	DBProperty()
+	public DBProperty()
 	{
 		loadFromConfigFile();
 	}
@@ -29,6 +31,8 @@ public class DBProperty
 				// load a properties file
 				prop.load(input);
 				m_strAccessFilePath = prop.getProperty("AccessFilePath");
+				m_strServerIP = prop.getProperty("ServerIP");
+				m_lServerPort = Long.parseLong(prop.getProperty("ServerPort"));
 			}
 
 		}
@@ -57,7 +61,15 @@ public class DBProperty
 		return m_strAccessFilePath;
 	}
 	
+	public String GetServerIP()
+	{
+		return m_strServerIP;
+	}
 	
+	public long GetServerPort()
+	{ 
+		return m_lServerPort;
+	}
 	
 	public static void main(String[] args)
 	{
