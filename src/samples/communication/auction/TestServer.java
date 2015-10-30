@@ -1,4 +1,4 @@
-package server.auction;
+package samples.communication.auction;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -18,7 +18,7 @@ import java.util.TreeMap;
 
 import common.auction.Singleton;
 
-public class Server
+public class TestServer
 {
 	private ServerSocket ss;
 	private HashSet<Socket> hs;
@@ -36,7 +36,7 @@ public class Server
 		return (int)singleton.GetProperty().GetServerPort();
 	}
 	
-	public Server()
+	public TestServer()
 	{	
 		do
 		{	

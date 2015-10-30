@@ -32,6 +32,23 @@ public class JMSAccessConn
 		}
 	}
 	
+	JMSAccessConn(DBProperty db)
+	{
+		m_strConnString = m_strConnStringPrefix + db.GetAccessFilePath() + ";";
+		
+		try
+		{
+			Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
+			m_strConnString = m_strConnStringPrefix + db.GetAccessFilePath() + ";";
+			m_conn = DriverManager.getConnection(  m_strConnString, "", "");
+			m_statement = m_conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);;
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
+	}
+	
 	protected String GetDBProperty()
 	{
 		DBProperty db = singleton.GetProperty();

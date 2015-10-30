@@ -1,4 +1,4 @@
-package client.auction;
+package samples.communication.auction;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.util.Date;
 import common.auction.*;
 import  java.util.*;
 
-public class Client
+public class TestClient
 {
 	private String name;
 	private Long freeTimeLast=new Date().getTime();
@@ -27,7 +27,7 @@ public class Client
 		return (int)singleton.GetProperty().GetServerPort();
 	}
 	
-	public Client()
+	public TestClient()
 	{
 		BufferedReader inBuffer =new BufferedReader(new InputStreamReader(System.in));
 		
@@ -185,6 +185,6 @@ public class Client
 	
 	public static void main(String[] args) 
 	{
-		new Client();
+		new TestClient();
 	}
 }
