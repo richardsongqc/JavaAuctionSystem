@@ -100,14 +100,22 @@ public class CommBuffer
 	public int SendBufer( SocketChannel socketChann) throws IOException
 	{
 		int nWriteLen = socketChann.write(m_buffer);
-		System.out.printf( "Send Buffer Length = %d\n%s\n", nWriteLen, PrintBuffer(m_buffer.get(1)+2) ); 
+		if( nWriteLen > 0 )
+		{
+			System.out.printf( "Send Buffer Length = %d\n%s\n", nWriteLen, PrintBuffer(m_buffer.get(1)+2) ); 
+		}
+		
 		return nWriteLen;
 	}
 	
 	public int ReceiveBuffer( SocketChannel socketChann) throws IOException
 	{
 		int nReadLen = socketChann.read(m_buffer);
-		System.out.printf( "Read Buffer Length = %d\n%s\n", nReadLen, PrintBuffer(m_buffer.get(1)+2) ); 
+		if( nReadLen > 0 )
+		{
+			System.out.printf( "Read Buffer Length = %d\n%s\n", nReadLen, PrintBuffer(m_buffer.get(1)+2) ); 
+		}
+		
 		return nReadLen;
 	}
 	

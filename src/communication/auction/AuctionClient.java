@@ -63,7 +63,7 @@ public class AuctionClient
 		inRegisterClient.SetUserPassword(strPassword);
 		
 		// 每一次调用read（）方法接收到的字节数
-		OutRegisterClient outRegisterClient = new OutRegisterClient();
+		CommBuffer outRegisterClient = new CommBuffer();
 		
 		SendRequest( inRegisterClient, outRegisterClient );
 
