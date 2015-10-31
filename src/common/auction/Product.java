@@ -2,58 +2,58 @@ package common.auction;
 
 public class Product
 {
-	public long productID;
-	public String name;
-	public long count;
-	public double price;
+	public long m_productID;
+	public String m_strName;
+	public long m_lCount;
+	public double m_dblPrice;
 
-	public Product(long P_D, String N_M, long C_T, double P_E)
+	public Product(long productID, String strName, long lCount, double dblPrice)
 	{
-		productID = P_D;
-		name = N_M;
-		count = C_T;
-		price = P_E;
+		m_productID = productID;
+		m_strName = strName;
+		m_lCount = lCount;
+		m_dblPrice = dblPrice;
 	}
 
 	public long GetProductID()
 	{
-		return productID;
+		return m_productID;
 
 	}
 
 	public String GetName()
 	{
-		return name;
+		return m_strName;
 	}
 
 	public long GetCount()
 	{
-		return count;
+		return m_lCount;
 	}
 
 	public double GetPrice()
 	{
-		return price;
+		return m_dblPrice;
 	}
 
 	public void SetProductID(long P_ID)
 	{
-		productID = P_ID;
+		m_productID = P_ID;
 	}
 
-	public void SetName(String N_M)
+	public void SetName(String strName)
 	{
-		name = N_M;
+		m_strName = strName;
 	}
 
-	public void SetCount(long C_T)
+	public void SetCount(long lCount)
 	{
-		count = C_T;
+		m_lCount = lCount;
 	}
 
-	public void SetPrice(double P_E)
+	public void SetPrice(double dblPrice)
 	{
-		price = P_E;
+		m_dblPrice = dblPrice;
 	}
 
 }

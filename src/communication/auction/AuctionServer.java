@@ -5,14 +5,19 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
 import buffer.communication.auction.CommBuffer;
 import buffer.communication.auction.InRegisterClient;
+import buffer.communication.auction.InRetrieveStock;
 import buffer.communication.auction.KeyBufferPair;
 import buffer.communication.auction.OutRegisterClient;
+import buffer.communication.auction.OutRetrieveStock;
 import common.auction.JMSAccessConn;
+import common.auction.Product;
+import common.auction.RegisterStateNamePair;
 import common.auction.Singleton;
 
 public class AuctionServer
@@ -23,7 +28,7 @@ public class AuctionServer
 	private static final int TIMEOUT = 3000;
 	private ITCPProtocol protocol;
 	
-	public Singleton singleton = Singleton.getInstance();
+	private Singleton singleton = Singleton.getInstance();
 
 	private Vector<KeyBufferPair> m_listInBuffer;
 	private Vector<KeyBufferPair> m_listOutBuffer;
@@ -142,16 +147,31 @@ public class AuctionServer
 					String strUserID = inRegisterClient.GetUserID();
 					String strPassword = inRegisterClient.GetUserPassword();
 					
-					
-					boolean bValidUser = GetDBConn().ValidateUser(strUserID, strPassword);
+					RegisterStateNamePair statePair = GetDBConn().ValidateUser(strUserID, strPassword);
 					OutRegisterClient outBuffer = new OutRegisterClient();
 					
-					outBuffer.SetState(bValidUser);
+					keyPair.SetState(statePair);
+					
+					outBuffer.SetState(statePair.GetValid());
+					if( statePair.GetValid() )
+					{
+						outBuffer.SetUserName(statePair.GetName());
+					}
 					
 					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outBuffer));
 					
 					break;
-				case 2: break;
+				case 2:
+					// Retrieve the stock
+					InRetrieveStock inRetrieveStock = new InRetrieveStock(buffer);
+					strUserID = inRetrieveStock.GetUserID();
+					ArrayList<Product> listProduct = GetDBConn().GetProductList(strUserID);
+					
+					OutRetrieveStock outRetrieveStock = new OutRetrieveStock();
+					outRetrieveStock.SetListProduct(listProduct);
+					
+					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outRetrieveStock));
+					break;
 				case 3: break;
 				case 4: break;
 				case 5: break;

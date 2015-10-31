@@ -61,9 +61,9 @@ public class JMSAccessConn
 		// finalization code here
 	}
 	
-	public boolean ValidateUser( String strUserID, String strPassword)
+	public RegisterStateNamePair ValidateUser( String strUserID, String strPassword)
 	{
-		boolean bValidPassword = false;
+		RegisterStateNamePair pair = new RegisterStateNamePair();
 
 		try
 		{
@@ -78,7 +78,11 @@ public class JMSAccessConn
 			
 			if(size >0 )
 			{
-				bValidPassword = true;
+				pair.SetValid(true); 
+				
+				rs.first();
+				
+				pair.SetName( rs.getString("Name") );
 			}
 		}
 		catch (Exception ex)
@@ -86,7 +90,7 @@ public class JMSAccessConn
 			ex.printStackTrace();
 		}
 		
-		return bValidPassword;
+		return pair;
 	}
 	
 	public ArrayList<Product> GetProductList( long lUserID)
@@ -118,11 +122,11 @@ public class JMSAccessConn
 		return m_listProduct;
 	}
 	
-	public ArrayList<Product> GetProductList( String strUserName)
+	public ArrayList<Product> GetProductList( String strUserID )
 	{
 		try
 		{
-			String strSQL = "SELECT ProductCategory.ProductID as ProductID, ProductCategory.ProductName as ProductName, Product.Price as Price, User.Name as UserName FROM (Product INNER JOIN [User] ON Product.UserID = User.UserID) INNER JOIN ProductCategory ON Product.ProductID = ProductCategory.ProductID  WHERE User.Name = '" + strUserName + "';";
+			String strSQL = "SELECT ProductCategory.CategoryID as CategoryID, ProductCategory.CategoryName as CategoryName, Product.Price as Price, User.Name as UserName FROM (Product INNER JOIN [User] ON Product.UserID = User.UserID) INNER JOIN ProductCategory ON Product.ProductID = ProductCategory.CategoryID  WHERE User.LoginName = '" + strUserID + "';";
 			
 			m_statement.execute(strSQL);
 			
@@ -131,8 +135,8 @@ public class JMSAccessConn
 			m_listProduct = new ArrayList<Product> ();
 			while( rs.next())
 			{
-				long lProductID = rs.getLong("ProductID");
-				String strName = rs.getString("ProductName");
+				long lProductID = rs.getLong("CategoryID");
+				String strName = rs.getString("CategoryName");
 				double dblPrice = rs.getDouble("Price");
 				Product product = new Product(lProductID, strName, 1, dblPrice);
 				

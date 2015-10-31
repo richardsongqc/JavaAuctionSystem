@@ -2,10 +2,13 @@ package buffer.communication.auction;
 
 import java.nio.channels.SelectionKey;
 
+import common.auction.RegisterStateNamePair;
+
 public class KeyBufferPair
 {
 	public SelectionKey m_key;
 	public CommBuffer   m_buffer;
+	public RegisterStateNamePair m_state;
 	
 	public KeyBufferPair(SelectionKey key, CommBuffer buffer )
 	{
@@ -22,4 +25,16 @@ public class KeyBufferPair
 	{
 		return m_buffer;
 	}
+	
+	public RegisterStateNamePair GetState()
+	{
+		return m_state;
+	}
+	
+	public void SetState( RegisterStateNamePair state)
+	{
+		m_state = state;
+	}
+	
+	
 }

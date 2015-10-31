@@ -6,11 +6,16 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 import buffer.communication.auction.CommBuffer;
 import buffer.communication.auction.InRegisterClient;
+import buffer.communication.auction.InRetrieveStock;
 import buffer.communication.auction.OutRegisterClient;
+import buffer.communication.auction.OutRetrieveStock;
 //import common.auction.Singleton;
+import common.auction.Product;
 
 public class AuctionClient
 {
@@ -49,8 +54,7 @@ public class AuctionClient
 			}
 		}
 
-		// 为了与后面打印的"."区别开来，这里输出换行符
-		System.out.print("Welcome to Auction System!!!!\n");
+
 
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		System.out.println("Please enter your username");
@@ -63,14 +67,83 @@ public class AuctionClient
 		inRegisterClient.SetUserPassword(strPassword);
 		
 		// 每一次调用read（）方法接收到的字节数
-		CommBuffer outRegisterClient = new CommBuffer();
+		CommBuffer out = new CommBuffer();
 		
-		SendRequest( inRegisterClient, outRegisterClient );
-
+		SendRequest( inRegisterClient, out );
+		
+		OutRegisterClient rsp = new OutRegisterClient(out);
+		
+		if( rsp.GetState() )
+		{
+			System.out.printf("Welcome to Auction System!!!!\n\t*** %s *** \n", rsp.GetUserName());
+			
+			Scanner input =new Scanner (System.in);
+			while(true)
+			{
+				System.out.println("Please choose the number of your next Step:");
+				System.out.println("\t1.Offer iterms for selling.\n\t2.Bidding for iterms.\n\t3.Exit.");
+				
+				
+				int nSelection = input.nextInt();
+				switch(nSelection)
+				{
+				case 1:
+					// Offer items for selling
+					// enumerate all items in your stocks.
+					
+					RetrieveStock( strUserID );
+					
+					break;
+				case 2:   
+					// Bidding for items
+					// 
+					break;
+				case 3:   
+					// Exit;
+					clntChan.close();
+					System.exit(0);
+					break;
+				default:  
+					break;
+				}
+				
+			}
+		}
+		
 		// 关闭信道
 		clntChan.close();
 	}
+	
+	ArrayList<Product> RetrieveStock( String StrUserID )
+	{
+		InRetrieveStock inBuffer= new InRetrieveStock();
+		inBuffer.SetUserID(StrUserID);
 
+		
+		// 每一次调用read（）方法接收到的字节数
+		CommBuffer out = new CommBuffer();
+		
+		SendRequest( inBuffer, out );
+		
+		ArrayList<Product> listProduct = new ArrayList<Product>();
+		
+		OutRetrieveStock outBuffer = new OutRetrieveStock(out);
+		
+		listProduct = outBuffer.GetListProduct();
+		
+		for( Product product: listProduct )
+		{
+			System.out.printf("\tProduct ID    : %d\n", product.GetProductID() );
+			System.out.printf("\tProduct Name  : %s\n", product.GetName() );
+			System.out.printf("\tProduct Count : %d\n", product.GetCount() );
+			System.out.printf("\tProduct Price : %.2f\n", product.GetPrice() );
+			System.out.println("\t----------------------------\n" );
+		}
+		
+		return listProduct;
+	}
+	
+	
 	public void SendRequest(CommBuffer inBuf, CommBuffer outBuf)
 	{
 		try

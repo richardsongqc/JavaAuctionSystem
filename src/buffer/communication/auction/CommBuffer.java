@@ -33,6 +33,11 @@ public class CommBuffer
 		m_buffer = buffer;
 	}
 	
+	public CommBuffer(CommBuffer buffer)
+	{
+		m_buffer = buffer.m_buffer;
+	}
+	
 	public byte[] GetByteArray()
 	{
 		return m_buffer.array();
@@ -46,21 +51,23 @@ public class CommBuffer
 	////////////////////////////////////////////////////////////////////////////
 	public void PutBuffer( byte[] szBuf, int index, int nLen)
 	{
-		m_buffer.rewind();
+		//m_buffer.rewind();
 		for( int i = 0; i < nLen; i++ )
 		{
 			m_buffer.put(index + i,szBuf[i]);
 		}
 	}
 	
-	public void GetBuffer( byte[] szBuf, int index, int nLen)
+	public byte[] GetBuffer( int index, int nLen)
 	{
-		m_buffer.flip();
-		szBuf = new byte[nLen];
+		//m_buffer.flip();
+		byte[] szBuf = new byte[nLen];
 		for( int i = 0; i < nLen; i++ )
 		{
 			szBuf[i]=m_buffer.get(index + i);
 		}
+		
+		return szBuf;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////
@@ -75,9 +82,9 @@ public class CommBuffer
 		return m_buffer.get(0);
 	}
 	
-	public void SetLength( byte byLen)
+	public void SetLength( int i)
 	{
-		m_buffer.put(1, byLen);
+		m_buffer.put(1, (byte)i);
 	}
 	
 	public byte GetLength()
@@ -93,7 +100,7 @@ public class CommBuffer
 	public byte[] GetData()
 	{
 		byte[] szData = new byte[m_buffer.get(1)];
-		GetBuffer(szData, 2, szData.length );
+		szData = GetBuffer( 2, szData.length );
 		return szData;
 	}
 	

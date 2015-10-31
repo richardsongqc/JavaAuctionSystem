@@ -11,10 +11,10 @@ public class JMSAccessConnTest
 	public void testValidateUser()
 	{
 		JMSAccessConn access = new JMSAccessConn();
-		boolean bValid = access.ValidateUser("ResultSet", "123123");
+		boolean bValid = access.ValidateUser("ResultSet", "123123").GetValid();
 		System.out.println( bValid == true ? "Valid\n" : "Invalid\n");
 		
-		bValid = access.ValidateUser("tcruise", "123123");
+		bValid = access.ValidateUser("tcruise", "123123").GetValid();
 		System.out.println( bValid == true ? "Valid\n" : "Invalid\n");
 	}
 	
