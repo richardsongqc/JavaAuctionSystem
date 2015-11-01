@@ -71,8 +71,6 @@ public class OutRetrieveStock extends CommBuffer
 	{
 		int nTotalSize = 0;
 		int position = 2;
-		final byte LONGOFFSET = 8;
-		final byte DOUBLEOFFSET = 8;
 		
 		for( Product product : listProduct)
 		{

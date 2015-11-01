@@ -10,34 +10,37 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import buffer.communication.auction.CommBuffer;
+import buffer.communication.auction.InAdvertising;
 import buffer.communication.auction.InRegisterClient;
 import buffer.communication.auction.InRetrieveStock;
+import buffer.communication.auction.OutAdvertising;
 import buffer.communication.auction.OutRegisterClient;
 import buffer.communication.auction.OutRetrieveStock;
 //import common.auction.Singleton;
 import common.auction.Product;
+import common.auction.Singleton;
 
 public class AuctionClient
 {
-	//public Singleton singleton = Singleton.getInstance();
+	public Singleton singleton = Singleton.getInstance();
 	private String m_strIP;
 	private int m_nPort;
 	private SocketChannel clntChan;
-	//private String GetServerIP()
-	//{
-	//	return singleton.GetProperty().GetServerIP();
-	//}
-    //
-	//private int GetServerPort()
-	//{
-	//	return (int) singleton.GetProperty().GetServerPort();
-	//}
+	private String GetServerIP()
+	{
+		return singleton.GetProperty().GetServerIP();
+	}
+    
+	private int GetServerPort()
+	{
+		return (int) singleton.GetProperty().GetServerPort();
+	}
 
-	public AuctionClient( String strIP, int nPort) throws IOException
+	public AuctionClient() throws IOException
 	{
 		
-		m_strIP = strIP;
-		m_nPort = nPort;
+		m_strIP = GetServerIP();
+		m_nPort = GetServerPort();
 		
 		// 创建一个信道，并设为非阻塞模式
 		clntChan = SocketChannel.open();
@@ -91,7 +94,20 @@ public class AuctionClient
 					// Offer items for selling
 					// enumerate all items in your stocks.
 					
-					RetrieveStock( strUserID );
+					ArrayList<Product> listProduct = RetrieveStock( strUserID );
+					System.out.println("\tPlease choose the Product ID to avertise it:\n\t0. Return the root menu.");
+					nSelection = input.nextInt();
+					for( Product product: listProduct)
+					{
+						if(product.GetProductID() == nSelection )
+						{
+							//System.out.println("\t");
+							
+							Advertising(product);
+							
+							break;
+						}
+					}
 					
 					break;
 				case 2:   
@@ -114,7 +130,7 @@ public class AuctionClient
 		clntChan.close();
 	}
 	
-	ArrayList<Product> RetrieveStock( String StrUserID )
+	public ArrayList<Product> RetrieveStock( String StrUserID )
 	{
 		InRetrieveStock inBuffer= new InRetrieveStock();
 		inBuffer.SetUserID(StrUserID);
@@ -143,9 +159,27 @@ public class AuctionClient
 		return listProduct;
 	}
 	
-	
-	public void SendRequest(CommBuffer inBuf, CommBuffer outBuf)
+	public void Advertising( Product product)
 	{
+		InAdvertising inBuffer= new InAdvertising();
+
+		inBuffer.SetProductID(product.GetProductID());
+		inBuffer.SetProductName(product.GetName());
+		inBuffer.SetProductCount(product.GetCount());
+		inBuffer.SetProductPrice(product.GetPrice());
+		
+		CommBuffer out = new CommBuffer();
+		
+		SendRequest( inBuffer, out );
+		
+		OutAdvertising outBuffer = new OutAdvertising(out);
+		
+		
+	}
+	
+	public int SendRequest(CommBuffer inBuf, CommBuffer outBuf)
+	{
+		int nRet = 0;
 		try
 		{
 			inBuf.SendBufer(clntChan);
@@ -154,6 +188,7 @@ public class AuctionClient
 				int readBytes = outBuf.ReceiveBuffer(clntChan);
 				if (readBytes > 0)
 				{
+					nRet = 0;	
 					break;
 				}
 			}
@@ -162,17 +197,20 @@ public class AuctionClient
 		{
 			e.printStackTrace();
 		}
+		
+		return nRet;
 	}
 
 	public static void main(String[] args) throws Exception
 	{	
-		if( args.length != 2 )
-		{
-			System.out.print("Parameters: <HOST> <PORT>/n");
-			return;
-		}
-		
-		new AuctionClient(args[0], Integer.parseInt(args[1]));
+		//if( args.length != 2 )
+		//{
+		//	System.out.print("Parameters: <HOST> <PORT>/n");
+		//	return;
+		//}
+		//
+		//new AuctionClient(args[0], Integer.parseInt(args[1]));
+		new AuctionClient();
 	}
 
 }

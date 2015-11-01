@@ -10,13 +10,17 @@ public class CommBuffer
 	protected final byte CMD_RETRIEVE_STOCK_OF_CLIENT	= 2;
 	protected final byte CMD_ADVERTISING 				= 3;
 	protected final byte CMD_BID 						= 4;
-	protected final byte CMD_BROADCAST_PRICE 			= 5;
+	//protected final byte CMD_BROADCAST_PRICE 			= 5;
 	
 	protected final byte RSP_REGISTER_CLIENT 			= 21;
 	protected final byte RSP_RETRIEVE_STOCK_OF_CLIENT 	= 22;
 	protected final byte RSP_ADVERTISING 				= 23;
 	protected final byte RSP_BID 						= 24;
-	protected final byte RSP_BROADCAST_PRICE			= 99;
+	
+	protected final byte CMD_BROADCAST_PRICE			= 99;
+	protected final byte CMD_BROADCAST_AUCTION_END		= 100;
+	final byte LONGOFFSET 								= 8;
+	final byte DOUBLEOFFSET 							= 8;
 	
 	protected ByteBuffer m_buffer;
 	

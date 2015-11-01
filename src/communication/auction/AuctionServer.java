@@ -9,10 +9,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
+import buffer.communication.auction.BroadcastProduct;
 import buffer.communication.auction.CommBuffer;
+import buffer.communication.auction.InAdvertising;
 import buffer.communication.auction.InRegisterClient;
 import buffer.communication.auction.InRetrieveStock;
 import buffer.communication.auction.KeyBufferPair;
+import buffer.communication.auction.OutAdvertising;
 import buffer.communication.auction.OutRegisterClient;
 import buffer.communication.auction.OutRetrieveStock;
 import common.auction.JMSAccessConn;
@@ -27,7 +30,7 @@ public class AuctionServer
 	// select方法等待信道准备好的最长时间
 	private static final int TIMEOUT = 3000;
 	private ITCPProtocol protocol;
-	
+	private Selector selector;
 	private Singleton singleton = Singleton.getInstance();
 
 	private Vector<KeyBufferPair> m_listInBuffer;
@@ -50,7 +53,7 @@ public class AuctionServer
 		
 		int nPort = GetServerPort();
 
-		Selector selector = Selector.open();
+		selector = Selector.open();
 
 		// 实例化一个信道
 		ServerSocketChannel listnChannel = ServerSocketChannel.open();
@@ -172,7 +175,35 @@ public class AuctionServer
 					
 					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outRetrieveStock));
 					break;
-				case 3: break;
+				case 3: 
+					// Advertising
+					InAdvertising inAdvertising= new InAdvertising();
+						
+					long lProductID = inAdvertising.GetProductID();
+					String strProductName = inAdvertising.GetProductName();
+					long lProductCount = inAdvertising.GetProductCount();
+					double dblProductPrice = inAdvertising.GetProductPrice();
+					
+					BroadcastProduct broadcast = new BroadcastProduct();
+					
+					broadcast.SetProductID(lProductID);
+					broadcast.SetProductCount(lProductCount);
+					broadcast.SetProductPrice(dblProductPrice);
+					broadcast.SetProductName(strProductName);
+					
+					for( SelectionKey key : selector.selectedKeys() )
+					{
+						if( key != keyPair.GetSelectionKey() )
+						{
+							m_listOutBuffer.addElement( new KeyBufferPair(key, broadcast));
+						}
+					}
+					
+					OutAdvertising outAdvertising = new OutAdvertising();
+					outAdvertising.SetState(true);
+					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outAdvertising));
+					
+					break;
 				case 4: break;
 				case 5: break;
 				}
