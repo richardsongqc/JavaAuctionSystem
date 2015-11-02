@@ -151,6 +151,82 @@ public class JMSAccessConn
 		return m_listProduct;
 	}
 	
+	public long GetCurrentAuctionID()
+	{
+		long lAuctionID = 0 ;
+		
+		try
+		{
+			String strSQL = "SELECT MAX(AuctionID) AS MaxAuctionID FROM Auction";
+			
+			m_statement.execute(strSQL);
+			
+			ResultSet rs = m_statement.getResultSet();
+		
+			while( rs.next())
+			{
+				lAuctionID = rs.getLong("MaxAuctionID");
+			}
+		}
+		catch( Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		
+		return lAuctionID;			
+	}
+	
+	public double GetMaxBidPrice( long lAuctionID)
+	{
+		double dblMaxBidPrice = 0;
+		
+		try
+		{
+			String strSQL = "SELECT MAX(Price) AS BidPrice FROM Auction WHERE AuctionID = " + lAuctionID;
+			
+			m_statement.execute(strSQL);
+			
+			ResultSet rs = m_statement.getResultSet();
+		
+			while( rs.next())
+			{
+				dblMaxBidPrice = rs.getLong("BidPrice");
+			}
+		}
+		catch( Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		
+		return dblMaxBidPrice;	
+	}
+	
+	//public void SetBidTransaction( long lAuctionID, String strUserID, long lProductID)
+	//{
+	//	double dblMaxBidPrice = 0;
+	//	
+	//	try
+	//	{
+	//		String strSQL = "SELECT MAX(Price) AS BidPrice FROM Auction WHERE AuctionID = " + lAuctionID;
+	//		
+	//		m_statement.execute(strSQL);
+	//		
+	//		ResultSet rs = m_statement.getResultSet();
+	//	
+	//		while( rs.next())
+	//		{
+	//			dblMaxBidPrice = rs.getLong("BidPrice");
+	//		}
+	//	}
+	//	catch( Exception ex)
+	//	{
+	//		ex.printStackTrace();
+	//	}
+	//	
+	//	return dblMaxBidPrice;	
+	//}
+	
+	
 	public static void main(String[] args)
 	{
 		//try

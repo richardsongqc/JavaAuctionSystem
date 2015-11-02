@@ -12,10 +12,12 @@ import java.util.Vector;
 import buffer.communication.auction.BroadcastProduct;
 import buffer.communication.auction.CommBuffer;
 import buffer.communication.auction.InAdvertising;
+import buffer.communication.auction.InAuction;
 import buffer.communication.auction.InRegisterClient;
 import buffer.communication.auction.InRetrieveStock;
 import buffer.communication.auction.KeyBufferPair;
 import buffer.communication.auction.OutAdvertising;
+import buffer.communication.auction.OutAuction;
 import buffer.communication.auction.OutRegisterClient;
 import buffer.communication.auction.OutRetrieveStock;
 import common.auction.JMSAccessConn;
@@ -31,6 +33,8 @@ public class AuctionServer
 	private static final int TIMEOUT = 3000;
 	private ITCPProtocol protocol;
 	private Selector selector;
+	private long m_lAuctionID;
+	
 	private Singleton singleton = Singleton.getInstance();
 
 	private Vector<KeyBufferPair> m_listInBuffer;
@@ -193,18 +197,59 @@ public class AuctionServer
 					
 					for( SelectionKey key : selector.selectedKeys() )
 					{
-						if( key != keyPair.GetSelectionKey() )
+						if( key != keyPair.GetSelectionKey()  && keyPair.GetState().GetValid()  )
 						{
 							m_listOutBuffer.addElement( new KeyBufferPair(key, broadcast));
 						}
 					}
+					
+					m_lAuctionID = GetDBConn().GetCurrentAuctionID();
+					m_lAuctionID ++ ;
 					
 					OutAdvertising outAdvertising = new OutAdvertising();
 					outAdvertising.SetState(true);
 					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outAdvertising));
 					
 					break;
-				case 4: break;
+				case 4:
+					// Auction
+					InAuction inAuction= new InAuction();
+					
+					// Check the max bid price
+					double dblBidPrice = inAuction.GetProductPrice();
+					double dblMaxBidPrice = GetDBConn().GetMaxBidPrice(m_lAuctionID);
+					
+					OutAuction outAuction = new OutAuction();
+					
+					if( dblBidPrice > dblMaxBidPrice )
+					{
+						BroadcastProduct bid = new BroadcastProduct();
+						
+						bid.SetProductID(inAuction.GetProductID());
+						bid.SetProductCount(inAuction.GetProductCount());
+						bid.SetProductPrice(inAuction.GetProductPrice());
+						bid.SetProductName(inAuction.GetProductName());
+						
+						for( SelectionKey key : selector.selectedKeys() )
+						{
+							if( key != keyPair.GetSelectionKey()  && keyPair.GetState().GetValid()  )
+							{
+								m_listOutBuffer.addElement( new KeyBufferPair(key, bid) );
+							}
+						}
+						
+						outAuction.SetState(true);
+					}
+					else
+					{
+						outAuction.SetState(false);
+						outAuction.SetMaxBidPrice(dblMaxBidPrice);
+					}
+					
+					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outAuction));
+					
+					
+					break;
 				case 5: break;
 				}
 				
