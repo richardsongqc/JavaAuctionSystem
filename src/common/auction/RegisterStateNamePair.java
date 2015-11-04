@@ -4,11 +4,13 @@ public class RegisterStateNamePair
 {
 	private boolean m_bValidUser;
 	private String  m_strUserName;
+	private String  m_strUserID;
 	
 	public RegisterStateNamePair(  )
 	{
-		m_bValidUser = false ;
+		m_bValidUser  = false ;
 		m_strUserName = "";
+		m_strUserID   = "";
 	}
 	
 	public RegisterStateNamePair( boolean bValidUser, String strUserName)
@@ -36,4 +38,16 @@ public class RegisterStateNamePair
 	{
 		m_strUserName = strUserName;
 	}
+	
+	public String GetUserID()
+	{
+		return m_strUserID;
+	}
+	
+	public void SetUserID( String strUserID)
+	{
+		m_strUserID = strUserID;
+	}
+	
+	
 }

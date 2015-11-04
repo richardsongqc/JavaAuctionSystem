@@ -112,6 +112,11 @@ public class AuctionClient
 							{
 								//System.out.println("\t");
 								
+								//给输入你要的起拍价格
+								System.out.println("Please input your advertising price:\n");
+								product.SetPrice(Double.parseDouble(in.readLine())); 
+								
+								
 								Advertising(product);
 								
 								break;

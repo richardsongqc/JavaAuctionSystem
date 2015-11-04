@@ -1,7 +1,9 @@
 package common.auction;
 
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import common.auction.DBProperty;;
 
 public class JMSAccessConn
@@ -201,30 +203,34 @@ public class JMSAccessConn
 		return dblMaxBidPrice;	
 	}
 	
-	//public void SetBidTransaction( long lAuctionID, String strUserID, long lProductID)
-	//{
-	//	double dblMaxBidPrice = 0;
-	//	
-	//	try
-	//	{
-	//		String strSQL = "SELECT MAX(Price) AS BidPrice FROM Auction WHERE AuctionID = " + lAuctionID;
-	//		
-	//		m_statement.execute(strSQL);
-	//		
-	//		ResultSet rs = m_statement.getResultSet();
-	//	
-	//		while( rs.next())
-	//		{
-	//			dblMaxBidPrice = rs.getLong("BidPrice");
-	//		}
-	//	}
-	//	catch( Exception ex)
-	//	{
-	//		ex.printStackTrace();
-	//	}
-	//	
-	//	return dblMaxBidPrice;	
-	//}
+	public void SetBidTransaction( 
+			long lAuctionID, 
+			String strUserID, 
+			long lProductID,
+			long lCount,
+			double dblBidPrice)
+	{
+		PreparedStatement preparedStatementInsert = null;
+		
+		try
+		{
+			m_conn.setAutoCommit(false); 
+			
+			String strTxTime = new SimpleDateFormat("YYYYMMDD hh:mm:ss").format(new Date());
+			String strSQL = "INSERT INTO Auction(AuctionID, UserID, ProductID, Count, Price, Time ) VALUES( " +
+					lAuctionID + ", '" + strUserID + "'," + lProductID + ", " + lCount + ", " + dblBidPrice + ", '" +
+					strTxTime + "');";
+			
+			preparedStatementInsert = m_conn.prepareStatement(strSQL);
+			preparedStatementInsert.executeUpdate();
+			
+			m_conn.commit();
+		}
+		catch( Exception ex)
+		{
+			ex.printStackTrace();
+		}
+	}
 	
 	
 	public static void main(String[] args)

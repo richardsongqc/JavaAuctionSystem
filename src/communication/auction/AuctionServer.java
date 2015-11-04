@@ -155,6 +155,7 @@ public class AuctionServer
 					String strPassword = inRegisterClient.GetUserPassword();
 					
 					RegisterStateNamePair statePair = GetDBConn().ValidateUser(strUserID, strPassword);
+					statePair.SetUserID(strUserID);
 					OutRegisterClient outBuffer = new OutRegisterClient();
 					
 					keyPair.SetState(statePair);
@@ -188,6 +189,7 @@ public class AuctionServer
 					long lProductCount = inAdvertising.GetProductCount();
 					double dblProductPrice = inAdvertising.GetProductPrice();
 					
+					// Broadcast the packages to all the clients( except the current client) that should be registered successfully.
 					BroadcastProduct broadcast = new BroadcastProduct();
 					
 					broadcast.SetProductID(lProductID);
@@ -210,6 +212,16 @@ public class AuctionServer
 					outAdvertising.SetState(true);
 					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outAdvertising));
 					
+					
+					// *****************************************************************************
+					// After 5 minutes, the Auction should be started and the bids will be allowed.
+					
+					
+					
+					
+					
+					
+					//******************************************************************************
 					break;
 				case 4:
 					// Auction
@@ -223,6 +235,13 @@ public class AuctionServer
 					
 					if( dblBidPrice > dblMaxBidPrice )
 					{
+						GetDBConn().SetBidTransaction(
+								m_lAuctionID, 
+								keyPair.GetState().GetUserID(),
+								inAuction.GetProductID(), 
+								inAuction.GetProductCount(),
+								inAuction.GetProductPrice());
+						
 						BroadcastProduct bid = new BroadcastProduct();
 						
 						bid.SetProductID(inAuction.GetProductID());
@@ -239,6 +258,11 @@ public class AuctionServer
 						}
 						
 						outAuction.SetState(true);
+						
+						//*********************************************************
+						//如果这个最高价格保持5分钟，这个拍卖就可以结束了。
+						//实现起来，我们还需要一个线程去检查在这5分钟里，有没有新价格高于它。
+						//*********************************************************
 					}
 					else
 					{
@@ -250,7 +274,8 @@ public class AuctionServer
 					
 					
 					break;
-				case 5: break;
+				case 5: 
+					break;
 				}
 				
 				m_listInBuffer.removeElementAt(0);

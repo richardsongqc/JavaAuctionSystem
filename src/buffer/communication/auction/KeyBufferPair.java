@@ -9,7 +9,7 @@ public class KeyBufferPair
 	public SelectionKey m_key;
 	public CommBuffer   m_buffer;
 	public RegisterStateNamePair m_state;
-	
+
 	public KeyBufferPair(SelectionKey key, CommBuffer buffer )
 	{
 		m_key	 = key   ;
@@ -35,6 +35,5 @@ public class KeyBufferPair
 	{
 		m_state = state;
 	}
-	
 	
 }
