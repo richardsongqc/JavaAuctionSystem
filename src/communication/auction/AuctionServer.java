@@ -20,6 +20,8 @@ import buffer.communication.auction.OutAdvertising;
 import buffer.communication.auction.OutAuction;
 import buffer.communication.auction.OutRegisterClient;
 import buffer.communication.auction.OutRetrieveStock;
+import common.auction.AdvertisingTimer;
+import common.auction.BidTimer;
 import common.auction.JMSAccessConn;
 import common.auction.Product;
 import common.auction.RegisterStateNamePair;
@@ -182,7 +184,7 @@ public class AuctionServer
 					break;
 				case 3: 
 					// Advertising
-					InAdvertising inAdvertising= new InAdvertising();
+					InAdvertising inAdvertising= new InAdvertising(buffer);
 						
 					long lProductID = inAdvertising.GetProductID();
 					String strProductName = inAdvertising.GetProductName();
@@ -216,7 +218,7 @@ public class AuctionServer
 					// *****************************************************************************
 					// After 5 minutes, the Auction should be started and the bids will be allowed.
 					
-					
+					new AdvertisingTimer(20);
 					
 					
 					
@@ -263,6 +265,7 @@ public class AuctionServer
 						//如果这个最高价格保持5分钟，这个拍卖就可以结束了。
 						//实现起来，我们还需要一个线程去检查在这5分钟里，有没有新价格高于它。
 						//*********************************************************
+						new BidTimer(20);
 					}
 					else
 					{

@@ -184,7 +184,7 @@ public class AuctionClient
 		
 		listProduct = outBuffer.GetListProduct();
 		
-		for( Product product: m_listProduct )
+		for( Product product: listProduct )
 		{
 			System.out.printf("\tProduct ID    : %d\n", product.GetProductID() );
 			System.out.printf("\tProduct Name  : %s\n", product.GetName() );
