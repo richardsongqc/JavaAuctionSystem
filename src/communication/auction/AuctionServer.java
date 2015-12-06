@@ -5,11 +5,16 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
+//import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.Timer;
 import java.util.Vector;
 
 import buffer.communication.auction.BroadcastProduct;
+import buffer.communication.auction.BroadcastStatus;
 import buffer.communication.auction.CommBuffer;
 import buffer.communication.auction.InAdvertising;
 import buffer.communication.auction.InAuction;
@@ -20,8 +25,6 @@ import buffer.communication.auction.OutAdvertising;
 import buffer.communication.auction.OutAuction;
 import buffer.communication.auction.OutRegisterClient;
 import buffer.communication.auction.OutRetrieveStock;
-import common.auction.AdvertisingTimer;
-import common.auction.BidTimer;
 import common.auction.JMSAccessConn;
 import common.auction.Product;
 import common.auction.RegisterStateNamePair;
@@ -42,6 +45,13 @@ public class AuctionServer
 	private Vector<KeyBufferPair> m_listInBuffer;
 	private Vector<KeyBufferPair> m_listOutBuffer;
 	
+	private static final int WAITINGTIME = 20;
+	private long m_lStatus;
+	// 0 - NONE
+	// 1 - ADVERTISING
+	// 2 - AUCTION START
+	// 3 - AUCTION END
+	
 	private int GetServerPort()
 	{
 		return (int) singleton.GetProperty().GetServerPort();
@@ -52,8 +62,88 @@ public class AuctionServer
 		return singleton.GetDBConn();
 	}
 	
+	public class AdvertisingTimerTask extends java.util.TimerTask 
+    {  
+        @Override  
+        public void run() 
+        {  
+            System.out.println("Done !");  
+            
+            m_lStatus = 2;
+            
+            BroadcastStatus buf = new BroadcastStatus();
+            buf.SetStatus(m_lStatus);
+            
+			KeyBufferPair keyPair = m_listInBuffer.firstElement();
+			for( SelectionKey key : selector.selectedKeys() )
+			{
+				if( /*key != keyPair.GetSelectionKey()  && */keyPair.GetState().GetValid()  )
+				{
+					m_listOutBuffer.addElement( new KeyBufferPair(key, buf));
+				}
+			}
+        }  
+    }  
+	
+	public class AdvertisingTimer
+	{
+	    Timer timer;
+	    public AdvertisingTimer(int nSeconds)
+	    {
+	        timer = new Timer();
+	        timer.schedule(new AdvertisingTimerTask(), nSeconds * 1000);
+	    }
+	}
+	
+	public class BidTimerTask extends java.util.TimerTask 
+    {  
+        @Override  
+        public void run() 
+        {  
+            Date dtRecent = (Date) GetDBConn().GetRecentTransactionTime(m_lAuctionID);
+            Date dtCurTime = new Date();
+            
+            Calendar calRecent = Calendar.getInstance(); 
+            calRecent.setTime(dtRecent); 
+            
+            Calendar calCurTime = Calendar.getInstance(); 
+            calCurTime.setTime(dtCurTime); 
+            
+            if( calCurTime.getTimeInMillis() - calRecent.getTimeInMillis() > WAITINGTIME * 1000 )
+            {
+            	// End of Auction
+                m_lStatus = 3;
+                
+                BroadcastStatus buf = new BroadcastStatus();
+                buf.SetStatus(m_lStatus);
+                
+    			KeyBufferPair keyPair = m_listInBuffer.firstElement();
+    			for( SelectionKey key : selector.selectedKeys() )
+    			{
+    				if( /*key != keyPair.GetSelectionKey()  && */keyPair.GetState().GetValid()  )
+    				{
+    					m_listOutBuffer.addElement( new KeyBufferPair(key, buf));
+    				}
+    			}
+            }
+
+        }  
+    }  
+	
+	public class BidTimer
+	{
+	    Timer timer;
+	    public BidTimer(int nSeconds)
+	    {
+	        timer = new Timer();
+	        timer.schedule(new AdvertisingTimerTask(), nSeconds * 1000);
+	    }
+	}
+	
 	public AuctionServer() throws IOException
 	{
+		m_lStatus = 0;
+		
 		m_listInBuffer = new Vector<KeyBufferPair>();
 		m_listOutBuffer = new Vector<KeyBufferPair>();
 		
@@ -201,7 +291,7 @@ public class AuctionServer
 					
 					for( SelectionKey key : selector.selectedKeys() )
 					{
-						if( key != keyPair.GetSelectionKey()  && keyPair.GetState().GetValid()  )
+						if( /*key != keyPair.GetSelectionKey()  && */keyPair.GetState().GetValid()  )
 						{
 							m_listOutBuffer.addElement( new KeyBufferPair(key, broadcast));
 						}
@@ -218,7 +308,7 @@ public class AuctionServer
 					// *****************************************************************************
 					// After 5 minutes, the Auction should be started and the bids will be allowed.
 					
-					new AdvertisingTimer(20);
+					new AdvertisingTimer(WAITINGTIME);
 					
 					
 					
@@ -227,7 +317,7 @@ public class AuctionServer
 					break;
 				case 4:
 					// Auction
-					InAuction inAuction= new InAuction();
+					InAuction inAuction= new InAuction(buffer);
 					
 					// Check the max bid price
 					double dblBidPrice = inAuction.GetProductPrice();
@@ -265,7 +355,7 @@ public class AuctionServer
 						//如果这个最高价格保持5分钟，这个拍卖就可以结束了。
 						//实现起来，我们还需要一个线程去检查在这5分钟里，有没有新价格高于它。
 						//*********************************************************
-						new BidTimer(20);
+						new BidTimer(WAITINGTIME);
 					}
 					else
 					{

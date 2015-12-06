@@ -203,6 +203,31 @@ public class JMSAccessConn
 		return dblMaxBidPrice;	
 	}
 	
+	public Date GetRecentTransactionTime(long lAuctionID)
+	{
+		Date dtTime = new Date();
+		
+		try
+		{
+			String strSQL = "SELECT MAX(Time) AS TransactionTime FROM Auction WHERE AuctionID = " + lAuctionID;
+			
+			m_statement.execute(strSQL);
+			
+			ResultSet rs = m_statement.getResultSet();
+		
+			while( rs.next())
+			{
+				dtTime = rs.getDate("TransactionTime");
+			}
+		}
+		catch( Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		
+		return dtTime;	
+	}
+	
 	public void SetBidTransaction( 
 			long lAuctionID, 
 			String strUserID, 

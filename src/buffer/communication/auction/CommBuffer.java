@@ -18,7 +18,7 @@ public class CommBuffer
 	protected final byte RSP_BID 						= 24;
 	
 	protected final byte CMD_BROADCAST_PRICE			= 99;
-	protected final byte CMD_BROADCAST_AUCTION_END		= 100;
+	protected final byte CMD_BROADCAST_STATUS	    	= 100;
 	final byte LONGOFFSET 								= 8;
 	final byte DOUBLEOFFSET 							= 8;
 	
