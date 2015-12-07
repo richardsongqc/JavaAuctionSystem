@@ -168,6 +168,7 @@ public class JMSAccessConn
 			while( rs.next())
 			{
 				lAuctionID = rs.getLong("MaxAuctionID");
+				break;
 			}
 		}
 		catch( Exception ex)
@@ -193,6 +194,7 @@ public class JMSAccessConn
 			while( rs.next())
 			{
 				dblMaxBidPrice = rs.getLong("BidPrice");
+				break;
 			}
 		}
 		catch( Exception ex)
@@ -218,6 +220,7 @@ public class JMSAccessConn
 			while( rs.next())
 			{
 				dtTime = rs.getDate("TransactionTime");
+				break;
 			}
 		}
 		catch( Exception ex)
@@ -226,6 +229,34 @@ public class JMSAccessConn
 		}
 		
 		return dtTime;	
+	}
+	
+	public Product GetCurrentBidPrice( long lAuctionID )
+	{
+		Product product = new Product(0, "", 0,0);
+		
+		try
+		{
+			String strSQL = "SELECT Auction.*, ProductCategory.CategoryName FROM ProductCategory INNER JOIN (Auction INNER JOIN Product ON Auction.ProductID = Product.ProductID) ON ProductCategory.CategoryID = Product.CategoryID WHERE (((Auction.[AuctionID])="+ lAuctionID+ ")) ORDER BY Auction.[TransactionTime] ASC;";
+			
+			m_statement.execute(strSQL);
+			
+			ResultSet rs = m_statement.getResultSet();
+		
+			while( rs.next())
+			{
+				product.SetProductID(rs.getLong("ProductID") );
+				product.SetName(rs.getString("CategoryName") );
+				product.SetCount(rs.getLong("Count") );
+				product.SetPrice( rs.getDouble("Price") );
+			}
+		}
+		catch( Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		
+		return product;		
 	}
 	
 	public void SetBidTransaction( 

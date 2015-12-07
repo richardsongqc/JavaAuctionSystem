@@ -11,11 +11,13 @@ public class CommBuffer
 	protected final byte CMD_ADVERTISING 				= 3;
 	protected final byte CMD_BID 						= 4;
 	//protected final byte CMD_BROADCAST_PRICE 			= 5;
+	protected final byte CMD_QUERY_BID_PRICE     		= 5;
 	
 	protected final byte RSP_REGISTER_CLIENT 			= 21;
 	protected final byte RSP_RETRIEVE_STOCK_OF_CLIENT 	= 22;
 	protected final byte RSP_ADVERTISING 				= 23;
 	protected final byte RSP_BID 						= 24;
+	protected final byte RSP_QUERY_BID_PRICE			= 25;
 	
 	protected final byte CMD_BROADCAST_PRICE			= 99;
 	protected final byte CMD_BROADCAST_STATUS	    	= 100;
@@ -113,7 +115,7 @@ public class CommBuffer
 		int nWriteLen = socketChann.write(m_buffer);
 		if( nWriteLen > 0 )
 		{
-			System.out.printf( "Send Buffer Length = %d\n%s\n", nWriteLen, PrintBuffer(m_buffer.get(1)+2) ); 
+			//System.out.printf( "Send Buffer Length = %d\n%s\n", nWriteLen, PrintBuffer(m_buffer.get(1)+2) ); 
 		}
 		
 		return nWriteLen;
@@ -124,7 +126,7 @@ public class CommBuffer
 		int nReadLen = socketChann.read(m_buffer);
 		if( nReadLen > 0 )
 		{
-			System.out.printf( "Read Buffer Length = %d\n%s\n", nReadLen, PrintBuffer(m_buffer.get(1)+2) ); 
+			//System.out.printf( "Read Buffer Length = %d\n%s\n", nReadLen, PrintBuffer(m_buffer.get(1)+2) ); 
 		}
 		
 		return nReadLen;

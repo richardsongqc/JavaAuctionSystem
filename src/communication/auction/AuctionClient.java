@@ -11,10 +11,12 @@ import java.util.Scanner;
 import buffer.communication.auction.CommBuffer;
 import buffer.communication.auction.InAdvertising;
 import buffer.communication.auction.InAuction;
+import buffer.communication.auction.InQueryBid;
 import buffer.communication.auction.InRegisterClient;
 import buffer.communication.auction.InRetrieveStock;
 import buffer.communication.auction.OutAdvertising;
 import buffer.communication.auction.OutAuction;
+import buffer.communication.auction.OutQueryBid;
 import buffer.communication.auction.OutRegisterClient;
 import buffer.communication.auction.OutRetrieveStock;
 //import common.auction.Singleton;
@@ -83,6 +85,8 @@ public class AuctionClient
 		
 		if( rsp.GetState() )
 		{
+			System.out.println("--------------------------------------------------------------\n" );
+			
 			System.out.printf("Welcome to Auction System!!!!\n\t*** %s *** \n", rsp.GetUserName());
 			
 			Scanner input = null;
@@ -125,21 +129,29 @@ public class AuctionClient
 						
 						break;
 					case 2:   
-						// Bidding for items
-						System.out.printf("\tPlease bid for the Product ID %d\n", m_lProductID);
-						for( Product product: m_listProduct)
+						Product product = new Product(0,"", 0, 0);
+						long lStatus = QueryBidStatus(product);
+						switch((int)lStatus)
 						{
-							if( product.GetProductID() == m_lProductID )
+						case 0: break;
+						case 1: break;
+						case 2: 
+							if( product.GetProductID() == 0 )
 							{
-								//System.out.println("\t");
-								
-								System.out.println("Bid Price:\n");
+								System.out.printf("NO Auction!\n");
+							}
+							else
+							{
+								System.out.printf("\tAt present, %s is in progress..\n", product.GetName());
+								System.out.printf("\t\t\t%f(%d)..\n", product.GetPrice(), product.GetCount());
+								System.out.printf("\tBid Price:\n", product.GetPrice(), product.GetCount());
 								product.SetPrice(Double.parseDouble(in.readLine())); 
 								Auction(product);
-								
-								break;
 							}
+							break;
+						case 3: break;
 						}
+
 						
 						break;
 					case 3:   
@@ -150,8 +162,10 @@ public class AuctionClient
 					default:  
 						break;
 					}
-					
+					System.out.println("--------------------------------------------------------------\n" );
 				}
+				
+				
 			}
 			finally 
 			{
@@ -184,6 +198,7 @@ public class AuctionClient
 		
 		listProduct = outBuffer.GetListProduct();
 		
+		System.out.printf("You have the following products:\n" );
 		for( Product product: listProduct )
 		{
 			System.out.printf("\tProduct ID    : %d\n", product.GetProductID() );
@@ -239,6 +254,25 @@ public class AuctionClient
 			System.out.printf("\tAt present, the maximum bid price is $ %.2f \n", dblMaxBidPrice);
 			System.out.println("\tIn order to obtain it, you give the higher price!\n" );
 		}
+	}
+	
+	public long QueryBidStatus(Product product)
+	{
+		InQueryBid inBuffer = new InQueryBid();
+		
+		CommBuffer out = new CommBuffer();
+		
+		SendRequest( inBuffer, out );
+		
+		
+		OutQueryBid outBuffer = new OutQueryBid(out);
+		
+		product.SetProductID( outBuffer.GetProductID() );
+		product.SetName( outBuffer.GetProductName() );
+		product.SetCount( outBuffer.GetProductCount() );
+		product.SetPrice(outBuffer.GetProductPrice() ) ;
+		
+		return outBuffer.GetStatus();
 	}
 	
 	public int SendRequest(CommBuffer inBuf, CommBuffer outBuf)

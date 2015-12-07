@@ -23,6 +23,7 @@ import buffer.communication.auction.InRetrieveStock;
 import buffer.communication.auction.KeyBufferPair;
 import buffer.communication.auction.OutAdvertising;
 import buffer.communication.auction.OutAuction;
+import buffer.communication.auction.OutQueryBid;
 import buffer.communication.auction.OutRegisterClient;
 import buffer.communication.auction.OutRetrieveStock;
 import common.auction.JMSAccessConn;
@@ -45,7 +46,8 @@ public class AuctionServer
 	private Vector<KeyBufferPair> m_listInBuffer;
 	private Vector<KeyBufferPair> m_listOutBuffer;
 	
-	private static final int WAITINGTIME = 20;
+	private Product m_product;
+	private static final int WAITINGTIME = 60;
 	private long m_lStatus;
 	// 0 - NONE
 	// 1 - ADVERTISING
@@ -74,14 +76,20 @@ public class AuctionServer
             BroadcastStatus buf = new BroadcastStatus();
             buf.SetStatus(m_lStatus);
             
-			KeyBufferPair keyPair = m_listInBuffer.firstElement();
-			for( SelectionKey key : selector.selectedKeys() )
-			{
-				if( /*key != keyPair.GetSelectionKey()  && */keyPair.GetState().GetValid()  )
+			m_lAuctionID = GetDBConn().GetCurrentAuctionID();
+			m_lAuctionID ++ ;
+			
+            if( m_listInBuffer.size() > 0 )
+            {
+				KeyBufferPair keyPair = m_listInBuffer.firstElement();
+				for( SelectionKey key : selector.selectedKeys() )
 				{
-					m_listOutBuffer.addElement( new KeyBufferPair(key, buf));
+					if( /*key != keyPair.GetSelectionKey()  && */keyPair.GetState().GetValid()  )
+					{
+						m_listOutBuffer.addElement( new KeyBufferPair(key, buf));
+					}
 				}
-			}
+            }
         }  
     }  
 	
@@ -117,14 +125,17 @@ public class AuctionServer
                 BroadcastStatus buf = new BroadcastStatus();
                 buf.SetStatus(m_lStatus);
                 
-    			KeyBufferPair keyPair = m_listInBuffer.firstElement();
-    			for( SelectionKey key : selector.selectedKeys() )
-    			{
-    				if( /*key != keyPair.GetSelectionKey()  && */keyPair.GetState().GetValid()  )
-    				{
-    					m_listOutBuffer.addElement( new KeyBufferPair(key, buf));
-    				}
-    			}
+                if( m_listInBuffer.size() > 0 )
+                {
+	    			KeyBufferPair keyPair = m_listInBuffer.firstElement();
+	    			for( SelectionKey key : selector.selectedKeys() )
+	    			{
+	    				if( /*key != keyPair.GetSelectionKey()  && */keyPair.GetState().GetValid()  )
+	    				{
+	    					m_listOutBuffer.addElement( new KeyBufferPair(key, buf));
+	    				}
+	    			}
+                }
             }
 
         }  
@@ -172,7 +183,7 @@ public class AuctionServer
 		
 		System.out.println("Auction Server has already been initialized!\n");
 
-		
+		m_lAuctionID = GetDBConn().GetCurrentAuctionID();
 		// 不断轮询select方法，获取准备好的信道所关联的Key集
 		while (true)
 		{
@@ -289,17 +300,22 @@ public class AuctionServer
 					broadcast.SetProductPrice(dblProductPrice);
 					broadcast.SetProductName(strProductName);
 					
+					
 					for( SelectionKey key : selector.selectedKeys() )
 					{
+						if( keyPair.GetState() == null )
+						{
+							continue;
+						}
+						
 						if( /*key != keyPair.GetSelectionKey()  && */keyPair.GetState().GetValid()  )
 						{
 							m_listOutBuffer.addElement( new KeyBufferPair(key, broadcast));
 						}
 					}
 					
-					m_lAuctionID = GetDBConn().GetCurrentAuctionID();
-					m_lAuctionID ++ ;
-					
+
+					m_product = new Product( lProductID, strProductName, lProductCount, dblProductPrice );
 					OutAdvertising outAdvertising = new OutAdvertising();
 					outAdvertising.SetState(true);
 					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outAdvertising));
@@ -343,13 +359,19 @@ public class AuctionServer
 						
 						for( SelectionKey key : selector.selectedKeys() )
 						{
-							if( key != keyPair.GetSelectionKey()  && keyPair.GetState().GetValid()  )
+							if( keyPair.GetState() == null )
+							{
+								continue;
+							}
+							
+							if( /*key != keyPair.GetSelectionKey() && */  keyPair.GetState().GetValid()  )
 							{
 								m_listOutBuffer.addElement( new KeyBufferPair(key, bid) );
 							}
 						}
 						
 						outAuction.SetState(true);
+						outAuction.SetMaxBidPrice(dblBidPrice);
 						
 						//*********************************************************
 						//如果这个最高价格保持5分钟，这个拍卖就可以结束了。
@@ -368,6 +390,19 @@ public class AuctionServer
 					
 					break;
 				case 5: 
+					// Query Bid Price
+					OutQueryBid outBuf = new OutQueryBid();
+					
+					//Product product = GetDBConn().GetCurrentBidPrice(m_lAuctionID);
+					
+					outBuf.SetStatus(m_lStatus);
+					outBuf.SetProductID(m_product.GetProductID());
+					outBuf.SetProductCount(m_product.GetCount());
+					outBuf.SetProductPrice(m_product.GetPrice());
+					outBuf.SetProductName(m_product.GetName());
+					
+					m_listOutBuffer.addElement( new KeyBufferPair(keyPair.GetSelectionKey(), outBuf));
+					
 					break;
 				}
 				
